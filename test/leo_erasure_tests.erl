@@ -36,7 +36,7 @@ suite_test_() ->
 %% @private
 long_process() ->
     ?debugMsg("===== Testing Encode + Decode ====="),
-    Bin = crypto:rand_bytes(?TEST_SIZE),
+    Bin = crypto:strong_rand_bytes(?TEST_SIZE),
     check_correctness(Bin, vandrs, {10, 4,-1}, 1),
     check_correctness(Bin, cauchyrs, {4, 2,-1}, 1),
     check_correctness(Bin, liberation, {4, 2,-1}, 1),
@@ -97,7 +97,7 @@ check_correctness(Bin, CodingClass, CodingParams, Failures) ->
 %% ---------------------------------------------------------
 file_test() ->
     ?debugMsg("===== Testing encode_file + decode_file ====="),
-    Bin = crypto:rand_bytes(?TEST_SIZE),
+    Bin = crypto:strong_rand_bytes(?TEST_SIZE),
     ?debugFmt(" * vandrs {10,4,8} ~p bytes", [?TEST_SIZE]),
     file:write_file("testbin", Bin),
     leo_erasure:encode_file(vandrs, {10,4,8}, "testbin"),
@@ -117,7 +117,7 @@ file_test() ->
 
 repair_test() ->
     ?debugMsg("===== Block Repair ====="),
-    Bin = crypto:rand_bytes(?TEST_SIZE),
+    Bin = crypto:strong_rand_bytes(?TEST_SIZE),
     repair_test(Bin, vandrs, {10,4,8}, 2),
     repair_test(Bin, cauchyrs, {4,2,3}, 2),
     repair_test(Bin, liberation, {4,2,7}, 2),
@@ -149,7 +149,7 @@ decode_test(Bin, BlockList, CodingClass, CodingParams, Failures) ->
     Func = fun(AvailList) ->
                    AvailBlocks = filter_block(BlockList, AvailList),
                    BlockIdList = AvailBlocks,
-                   ShuffleList = [X||{_,X} <- lists:sort([ {random:uniform(), N} || N <- BlockIdList])],
+                   ShuffleList = [X||{_,X} <- lists:sort([ {rand:uniform(), N} || N <- BlockIdList])],
                    {ok, OutBin} = leo_erasure:decode(CodingClass, CodingParams, ShuffleList, byte_size(Bin)),
                    case OutBin of
                        Bin ->
@@ -182,7 +182,7 @@ correctness_test_1(CodingParamK, CodingParamM, Len) ->
     %% preparing
     true = erlang:garbage_collect(self()),
     ?debugFmt(" * vandrs:{k:~w, m:~w}", [CodingParamK, CodingParamM]),
-    Bin = crypto:rand_bytes(Len),
+    Bin = crypto:strong_rand_bytes(Len),
 
     %% encoding
     {ok, IdWithBlockL} = leo_erasure:encode({CodingParamK, CodingParamM}, Bin),
@@ -194,7 +194,7 @@ correctness_test_1(CodingParamK, CodingParamM, Len) ->
     ?assertEqual(Len, byte_size(Bin_1)),
 
     %% repairing
-    RepairedId = erlang:phash2(crypto:rand_bytes(128), (CodingParamK + CodingParamM)) + 1,
+    RepairedId = erlang:phash2(crypto:strong_rand_bytes(128), (CodingParamK + CodingParamM)) + 1,
     IdWithBlockL_1 = lists:delete(
                        lists:nth(RepairedId, IdWithBlockL), IdWithBlockL),
     {ok, RepairedIdWithBlockL} = leo_erasure:repair({CodingParamK, CodingParamM}, IdWithBlockL_1),
@@ -213,7 +213,7 @@ bench_encode_test() ->
 
 parameters_test() ->
     ?debugMsg(" ===== Testing Parameters ====="),
-    Bin = crypto:rand_bytes(1024),
+    Bin = crypto:strong_rand_bytes(1024),
     ?debugMsg(" * Invalid: vandrs {4,2,7}"),
     {error, _} = leo_erasure:encode(vandrs, {4,2,7}, Bin),
 
