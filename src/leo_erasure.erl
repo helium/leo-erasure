@@ -169,7 +169,7 @@ encode(CodingClass, CodingParams, Bin) ->
                                                 TotalSize::integer(),
                                                 Blocks::[binary()]).
 encode(_CodingClass,_CodingParams,_Bin,_TotalSize) ->
-    exit(nif_library_not_loaded).
+    not_loaded(?LINE).
 
 
 %% @doc Actual Decoding with Jerasure (NIF)
@@ -192,7 +192,7 @@ decode({CodingParam_K, CodingParam_M}, IdWithBlockL, ObjSize) ->
                                              ObjSize::integer(),
                                              Bin::binary()).
 decode(_CodingClass,_CodingParams,_BlockL,_IdList,_ObjSize) ->
-    exit(nif_library_not_loaded).
+    not_loaded(?LINE).
 
 -spec(decode(CodingClass, CodingParams, IdWithBlockL, ObjSize) ->
              {ok, Bin} | {error, any()} when CodingClass::coding_class(),
@@ -243,11 +243,11 @@ repair(CodingClass, CodingParams, IdWithBlockL) ->
                                                 IdList::[non_neg_integer()],
                                                 RepairIdList ::[non_neg_integer()]).
 repair(_CodingClass,_CodingParams,_BlockL,_IdList,_RepairIdList) ->
-    exit(nif_library_not_loaded).
+    not_loaded(?LINE).
 
 -spec(gf_init() -> ok | {error, any()}).
 gf_init() ->
-    exit(nif_library_not_loaded).
+    not_loaded(?LINE).
 
 %%--------------------------------------------------------------------
 %% INNTERNAL FUNCTIONS
@@ -277,3 +277,6 @@ read_blocks(FileName, [Cnt | T], BlockL) ->
     BlockPath = filename:join(?BLOCKSTOR, BlockName),
     {ok, Block} = file:read_file(BlockPath),
     read_blocks(FileName, T, [{Cnt, Block} | BlockL]).
+
+not_loaded(Line) ->
+    erlang:nif_error({not_loaded, [{module, ?MODULE}, {line, Line}]}).
